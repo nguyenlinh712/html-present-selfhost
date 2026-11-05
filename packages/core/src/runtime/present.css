@@ -1,0 +1,111 @@
+/* FAB controls — Lane A. Keep below the inline editor overlay. */
+:root{--lt-fab-safe-top:env(safe-area-inset-top,0px);--lt-fab-safe-right:env(safe-area-inset-right,0px);--lt-fab-safe-bottom:env(safe-area-inset-bottom,0px);--lt-fab-safe-left:env(safe-area-inset-left,0px)}
+.lt-fab,.lt-fab-menu,.lt-fab-menu *{box-sizing:border-box}
+.lt-fab{
+  position:fixed;left:auto;top:auto;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  z-index:1000000;width:52px;height:52px;padding:0;border:1px solid rgba(255,255,255,.28);border-radius:50%;
+  color:#fff;background:var(--html-present-primary,#2563eb);box-shadow:0 5px 22px rgba(21,24,29,.28);
+  font:700 28px/1 "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:grab;touch-action:none;
+  transition:background .15s ease,box-shadow .15s ease,transform .15s ease;
+}
+.lt-fab:hover{transform:scale(1.04);box-shadow:0 7px 26px rgba(21,24,29,.34)}
+.lt-fab:focus-visible,.lt-fab-item:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
+.lt-fab.is-dragging{cursor:grabbing;transition:none;transform:scale(1.06)}
+.lt-fab[hidden],.lt-fab-menu[hidden]{display:none!important}
+/* Thanh điều khiển ngang ở dưới-giữa (giống control bar cũ), item xếp hàng. */
+.lt-fab-menu{
+  position:fixed;z-index:1000001;display:flex;flex-wrap:wrap;align-items:stretch;justify-content:center;gap:3px;
+  width:auto;max-width:calc(100vw - 20px);max-height:calc(100dvh - 24px);overflow:auto;
+  padding:5px;border:1px solid rgba(20,26,36,.12);border-radius:14px;background:rgba(255,255,255,.97);
+  color:#202632;box-shadow:0 10px 38px rgba(21,24,29,.24);backdrop-filter:blur(14px);
+  font:500 14px/1.3 "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.lt-fab-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:auto;min-width:54px;min-height:46px;padding:5px 8px;border:0;border-radius:9px;text-align:center;color:inherit;background:transparent;font:inherit}
+button.lt-fab-item{cursor:pointer}
+button.lt-fab-item:hover:not(:disabled){background:#eef2f8}
+.lt-fab-item:disabled{opacity:.42;cursor:default}
+.lt-fab-item-icon{display:inline-grid;place-items:center;flex:none;width:22px;color:var(--html-present-primary,#2563eb);font-size:18px}
+.lt-fab-item-label{font-size:10.5px;line-height:1.2;white-space:nowrap}
+.lt-fab-item-status{color:#586271;font-weight:700;font-variant-numeric:tabular-nums}
+.lt-fab-empty{padding:12px;color:#68717d;font-size:13px}
+@media(prefers-color-scheme:dark){
+  .lt-fab-menu{border-color:rgba(255,255,255,.14);background:rgba(31,36,46,.97);color:#f3f4f6}
+  button.lt-fab-item:hover:not(:disabled){background:#3a414d}
+  .lt-fab-item-status{color:#c1c8d2}
+}
+.htmlpresent-present-count{min-width:56px;text-align:center;font:700 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:#252a33}
+.htmlpresent-present-toast{position:fixed;left:50%;top:18px;z-index:2147483000;max-width:min(560px,calc(100vw - 32px));transform:translate(-50%,-8px);padding:10px 15px;border-radius:9px;background:#202632;color:#fff;box-shadow:0 6px 24px rgba(0,0,0,.18);font:500 13px/1.4 "Be Vietnam Pro",-apple-system,sans-serif;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+.htmlpresent-present-toast.htmlpresent-visible{opacity:1;transform:translate(-50%,0)}
+/* Màn khán giả giữ nguyên nền (sáng/tối) của slide gốc; không ép trắng. */
+html.htmlpresent-audience-page,html.htmlpresent-audience-page body{width:100%;height:100%;margin:0;overflow:hidden}
+#htmlpresent-audience{position:fixed;inset:0;z-index:2147482000;overflow:hidden;background:var(--htmlpresent-audience-bg,inherit);contain:layout paint size}
+#htmlpresent-audience>*{box-sizing:border-box;max-width:none!important;scroll-snap-align:none!important}
+#htmlpresent-audience .notes,#htmlpresent-audience aside.notes{display:none!important;visibility:hidden!important}
+#htmlpresent-audience.htmlpresent-present-blackout::after,
+html.htmlpresent-present-blackout:not(.htmlpresent-audience-page)::after{content:"";position:fixed;inset:0;z-index:2147483647;background:#000;pointer-events:auto}
+#htmlpresent-presenter-panel{position:fixed;inset:0;z-index:2147482500;display:flex;flex-direction:column;gap:14px;padding:16px 20px 18px;background:#f2f4f7;color:#202632;font:14px/1.45 "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
+.htmlpresent-audience-blocked{padding:12px 16px;border-radius:10px;background:#fff5e6;border:1px solid #fbbf7a;color:#92400e;font:500 13px/1.5 "Be Vietnam Pro",-apple-system,sans-serif;margin-bottom:12px}
+.htmlpresent-audience-blocked-link{color:var(--html-present-primary,#2563eb);text-decoration:underline;font-weight:700}
+.htmlpresent-audience-blocked-link:hover{opacity:.85}
+.htmlpresent-presenter-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:0 0 12px;border-bottom:1px solid #dfe3e9}
+.htmlpresent-presenter-head>div{display:flex;align-items:center;gap:14px}.htmlpresent-presenter-head strong{font-size:16px;color:#15181d}
+.htmlpresent-presenter-clock{padding:6px 10px;border-radius:8px;background:#fff;border:1px solid #e0e4ea;font:700 15px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+.htmlpresent-presenter-count{font-weight:700;color:#646d78}
+/* Trạng thái màn khán giả — Lane R: tab này luôn là người trình bày, nên phải
+   thấy rõ màn khán giả đang mở hay chưa. */
+.htmlpresent-presenter-audience{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:#eef0f4;color:#646d78;font:600 11.5px/1.2 "Be Vietnam Pro",-apple-system,sans-serif;white-space:nowrap}
+.htmlpresent-presenter-audience::before{content:"";width:7px;height:7px;border-radius:50%;background:#aeb5c0}
+.htmlpresent-presenter-audience.is-live{background:#e7f6ec;color:#15803d}
+.htmlpresent-presenter-audience.is-live::before{background:#16a34a}
+.htmlpresent-presenter-head nav{display:flex;gap:6px;flex-wrap:wrap}.htmlpresent-presenter-head button{font:600 12px/1.2 "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:8px 10px;border:1px solid #dfe3e9;border-radius:8px;background:#fff;color:#303844;cursor:pointer}.htmlpresent-presenter-head button:hover{border-color:var(--html-present-primary,#2563eb);color:var(--html-present-primary,#2563eb)}
+.htmlpresent-presenter-previews{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;min-height:180px;flex:1}
+.htmlpresent-presenter-previews>section{display:flex;flex-direction:column;min-width:0;min-height:0;padding:10px;border:1px solid #e0e4ea;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.htmlpresent-presenter-label{flex:none;padding:0 2px 8px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#737d89}
+/* Preview slide ở presenter: giữ nền + màu chữ của slide gốc (sáng/tối) để không
+   bị mất chữ. Mặc định xám nhạt + chữ tối khi slide không khai báo; JS set
+   --preview-bg / --preview-color từ computed style của body gốc. */
+.htmlpresent-presenter-current,.htmlpresent-presenter-next{position:relative;flex:1;min-height:0;overflow:hidden;border-radius:8px;background:#e9edf2;color:#202632;contain:layout paint}
+.htmlpresent-presenter-current[style*="--preview-bg"],.htmlpresent-presenter-next[style*="--preview-bg"]{background:var(--preview-bg)}
+.htmlpresent-presenter-current[style*="--preview-color"],.htmlpresent-presenter-next[style*="--preview-color"]{color:var(--preview-color)}
+.htmlpresent-presenter-current>*,.htmlpresent-presenter-next>*{box-sizing:border-box}
+.htmlpresent-presenter-no-next{height:100%;display:grid;place-items:center;color:#89919b;font-size:14px}
+.htmlpresent-presenter-notes{flex:none;max-height:28vh;overflow:auto;padding:12px 15px;border:1px solid #f0c4c8;border-radius:12px;background:#fff}
+.htmlpresent-presenter-notes>div{display:flex;align-items:center;gap:8px;color:#252b34}.htmlpresent-presenter-notes strong{font-size:13px}.htmlpresent-presenter-note-source{font-size:11px;color:#7b8490}
+.htmlpresent-presenter-notes p{white-space:pre-wrap;margin:7px 0 0;color:#444d58;font-size:14px;line-height:1.55}
+@media(max-width:800px){#htmlpresent-presenter-panel{padding:12px}.htmlpresent-presenter-previews{grid-template-columns:1fr;flex:none}.htmlpresent-presenter-current,.htmlpresent-presenter-next{min-height:32vh}.htmlpresent-presenter-notes{max-height:none}}
+
+/* ===== Điều khiển nâng cao port từ deck: reveal, progress, overview, help ===== */
+/* Reveal từng bước — áp cho mọi deck CÓ data-step (class lt-has-steps do server
+   gắn sẵn trong <head> + present.js gắn lại), không phụ thuộc layout. Deck có CSS
+   riêng (vd simple-rfid) sẽ tự ghi đè hiệu ứng. */
+html.lt-has-steps [data-step]{opacity:0;transition:opacity .4s ease}
+html.lt-has-steps [data-step].in{opacity:1}
+/* Ẩn con trỏ khi nghỉ (deck immersive). */
+html.lt-idle.lt-immersive,html.lt-idle.lt-immersive *{cursor:none!important}
+/* Thanh tiến độ mảnh ở mép trên. */
+.lt-progress{position:fixed;left:0;top:0;right:0;z-index:2147482100;height:3px;background:rgba(127,127,127,.18);pointer-events:none}
+.lt-progress>i{display:block;height:100%;width:0;background:var(--html-present-primary,#2563eb);transition:width .3s ease}
+@media print{.lt-progress{display:none}}
+/* Tổng quan (overview grid). */
+.lt-overview{position:fixed;inset:0;z-index:2147482600;display:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;align-content:start;padding:24px;overflow:auto;background:rgba(17,20,26,.92);backdrop-filter:blur(2px)}
+.lt-overview.is-open{display:grid}
+.lt-ov-item{position:relative;display:block;padding:0;border:2px solid transparent;border-radius:10px;background:#0b0d11;cursor:pointer;overflow:hidden;aspect-ratio:16/9}
+.lt-ov-item:hover{border-color:rgba(255,255,255,.4)}
+.lt-ov-item.is-current{border-color:var(--html-present-primary,#2563eb)}
+.lt-ov-item:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.lt-ov-thumb{position:absolute;inset:0;overflow:hidden}
+.lt-ov-thumb>*{box-sizing:border-box;max-width:none!important}
+.lt-ov-num{position:absolute;left:8px;bottom:6px;z-index:2;padding:1px 8px;border-radius:99px;background:rgba(0,0,0,.6);color:#fff;font:700 12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+/* Trợ giúp phím tắt. */
+.lt-help{position:fixed;inset:0;z-index:2147482700;display:none;place-items:center;padding:20px;background:rgba(17,20,26,.72)}
+.lt-help.is-open{display:grid}
+.lt-help-card{max-width:420px;width:100%;max-height:85vh;overflow:auto;padding:22px 24px;border-radius:14px;background:#fff;color:#202632;box-shadow:0 18px 60px rgba(0,0,0,.4);font:14px/1.5 "Be Vietnam Pro",-apple-system,sans-serif}
+.lt-help-card h3{margin:0 0 14px;font-size:18px;color:#15181d}
+.lt-help-card dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0}
+.lt-help-card dt{font:700 12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#15181d;white-space:nowrap}
+.lt-help-card dd{margin:0;color:#4a515c}
+.lt-help-close{margin-top:18px;padding:9px 16px;border:0;border-radius:9px;background:var(--html-present-primary,#2563eb);color:#fff;font:600 13px/1.2 "Be Vietnam Pro",-apple-system,sans-serif;cursor:pointer}
+@media (prefers-color-scheme:dark){
+  .lt-help-card{background:#1f242e;color:#f3f4f6}
+  .lt-help-card h3{color:#fff}.lt-help-card dt{color:#e5e7eb}.lt-help-card dd{color:#b8bfc9}
+}

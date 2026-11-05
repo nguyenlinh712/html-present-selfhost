@@ -1,0 +1,49 @@
+/* Form thu lead (Phase 7, lane A). Prefix .lt-lead-* để tránh đụng style deck. */
+.lt-lead-fab{position:fixed;left:16px;bottom:16px;z-index:2147483000;
+  padding:12px 18px;border:0;border-radius:999px;cursor:pointer;
+  font:600 14px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color:#fff;background:var(--html-present-primary,#2563eb);
+  box-shadow:0 6px 20px rgba(0,0,0,.28);transition:transform .15s ease,box-shadow .15s ease}
+.lt-lead-fab:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.34)}
+.lt-lead-fab:active{transform:translateY(0)}
+
+.lt-lead-modal{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;
+  padding:16px;background:rgba(15,18,24,.55);backdrop-filter:blur(2px);
+  opacity:0;transition:opacity .2s ease}
+.lt-lead-modal.is-open{opacity:1}
+.lt-lead-card{position:relative;width:100%;max-width:400px;box-sizing:border-box;
+  background:#fff;color:#111;border-radius:16px;padding:24px 22px 22px;
+  box-shadow:0 24px 60px rgba(0,0,0,.4);transform:translateY(8px) scale(.98);
+  transition:transform .2s ease}
+.lt-lead-modal.is-open .lt-lead-card{transform:none}
+.lt-lead-close{position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;border-radius:50%;
+  background:transparent;color:#888;font-size:22px;line-height:1;cursor:pointer}
+.lt-lead-close:hover{background:rgba(0,0,0,.06);color:#333}
+.lt-lead-title{margin:0 0 4px;font:700 20px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.lt-lead-sub{margin:0 0 16px;font:400 14px/1.4 system-ui,-apple-system,sans-serif;color:#666}
+.lt-lead-form{display:flex;flex-direction:column;gap:10px}
+.lt-lead-input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #d8dbe0;border-radius:10px;
+  font:400 15px/1.3 system-ui,-apple-system,sans-serif;color:#111;background:#fff;-webkit-appearance:none}
+.lt-lead-input:focus{outline:0;border-color:var(--html-present-primary,#2563eb);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.lt-lead-note{resize:vertical;min-height:46px}
+.lt-lead-msg{min-height:0;font:500 13px/1.3 system-ui,sans-serif;color:#666}
+.lt-lead-msg.is-err{color:#dc2626}
+.lt-lead-submit{margin-top:4px;padding:13px 16px;border:0;border-radius:10px;cursor:pointer;
+  font:600 15px/1 system-ui,sans-serif;color:#fff;background:var(--html-present-primary,#2563eb)}
+.lt-lead-submit:disabled{opacity:.6;cursor:default}
+.lt-lead-thanks{text-align:center;padding:12px 0 4px}
+.lt-lead-check{width:56px;height:56px;margin:0 auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--html-present-primary,#2563eb);color:#fff;font-size:30px}
+.lt-lead-thanks h3{margin:0 0 4px;font:700 19px/1.2 system-ui,sans-serif}
+.lt-lead-thanks p{margin:0;color:#666;font:400 14px/1.4 system-ui,sans-serif}
+
+@media (prefers-color-scheme:dark){
+  .lt-lead-card{background:#1b1f27;color:#f1f3f5}
+  .lt-lead-sub,.lt-lead-thanks p,.lt-lead-msg{color:#9aa3ad}
+  .lt-lead-input{background:#111419;color:#f1f3f5;border-color:#39404b}
+  .lt-lead-close:hover{background:rgba(255,255,255,.08);color:#ddd}
+}
+@media (max-width:480px){
+  .lt-lead-fab{left:12px;bottom:12px;padding:11px 16px;font-size:13px}
+  .lt-lead-card{max-width:none}
+}

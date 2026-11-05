@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data (keep your DATA_DIR outside the checkout)
+/data/
+*.log
+
+# OS / editor noise
+.DS_Store
+Thumbs.db

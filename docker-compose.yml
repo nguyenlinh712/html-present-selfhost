@@ -1,0 +1,20 @@
+services:
+  html-present:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3302}:3301"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3301
+      DATA_DIR: /data
+      COOKIE_SECURE: ${COOKIE_SECURE:-0}
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      CLIENT_IP_HEADER: ${CLIENT_IP_HEADER:-}
+      COUNTRY_HEADER: ${COUNTRY_HEADER:-}
+      PROXY_PROFILE: ${PROXY_PROFILE:-none}
+    volumes:
+      - html-present-data:/data
+
+volumes:
+  html-present-data:

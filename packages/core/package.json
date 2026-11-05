@@ -1,0 +1,12 @@
+{
+  "name": "@html-present/core",
+  "version": "0.1.0",
+  "description": "Shared application core for HTML Present",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "exceljs": "^4.4.0",
+    "yauzl": "^3.4.0"
+  }
+}

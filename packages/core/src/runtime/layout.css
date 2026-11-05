@@ -1,0 +1,70 @@
+/* Slide layout — stage cho dự án landscape/portrait.
+   Author viết slide trong khung cố định (baseWidth × baseHeight);
+   stage scale fit viewport, letterbox theo nền body/slide. */
+html.htmlpresent-layout-landscape,
+html.htmlpresent-layout-portrait {
+  width: 100%; height: 100%; margin: 0; padding: 0;
+}
+html.htmlpresent-layout-landscape body,
+html.htmlpresent-layout-portrait body {
+  margin: 0; padding: 0; min-height: 100vh;
+}
+.htmlpresent-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: inherit;
+}
+.htmlpresent-stage-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Canh giữa: slide đặt ở (50%,50%) rồi transform translate(-50%,-50%) scale()
+     quanh TÂM. transform-origin: 0 0 làm translate dùng kích thước chưa scale →
+     lệch ra ngoài stage; phải để center. */
+  transform-origin: center;
+  /* width/height + transform:scale do JS set */
+}
+/* Deck cố định chuyển ngang; transform của nội dung vẫn dành riêng cho scale fit. */
+html.lt-immersive:not(.htmlpresent-audience-page),
+html.lt-immersive:not(.htmlpresent-audience-page) body { overflow: hidden; }
+html.lt-immersive:not(.htmlpresent-audience-page) .htmlpresent-stage {
+  position: fixed;
+  inset: 0;
+  transform: translateX(var(--lt-slide-offset, 100%));
+  transition: transform 360ms ease;
+}
+html.lt-immersive .htmlpresent-stage:first-of-type { --lt-slide-offset: 0%; }
+@media (prefers-reduced-motion: reduce) {
+  html.lt-immersive .htmlpresent-stage { transition: none !important; }
+}
+/* Trong présent audience: stage tự nhiên trong #htmlpresent-audience, scale lại */
+#htmlpresent-audience .htmlpresent-stage { width: 100%; height: 100%; }
+
+/* Toast "xoay ngang" — chỉ hiện khi landscape + mobile portrait */
+.htmlpresent-rotate-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  transform: translate(-50%, 20px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(32, 38, 50, 0.92);
+  color: #fff;
+  font: 500 13px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Be Vietnam Pro", sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease, transform 240ms ease;
+  z-index: 2147482100;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+.htmlpresent-rotate-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

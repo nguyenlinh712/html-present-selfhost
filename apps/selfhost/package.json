@@ -1,0 +1,16 @@
+{
+  "name": "@html-present/selfhost",
+  "version": "0.1.0",
+  "description": "Self-hosted HTML Present application",
+  "private": false,
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": { "start": "node src/server.js" },
+  "dependencies": {
+    "@html-present/core": "0.1.0",
+    "chart.js": "^4.5.1",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}

@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý · HTML Present</title>
+<link rel="icon" href="/_app/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Design system: nguồn CSS duy nhất của admin (xem design.css §đầu file). -->
+<link rel="stylesheet" href="/_app/design.css">
+</head>
+<body>
+<div class="topline"></div>
+
+<!-- ĐĂNG NHẬP / THIẾT LẬP -->
+<div id="auth" class="hidden">
+  <div class="login">
+    <img src="/_app/assets/logo.svg" alt="HTML Present">
+    <div class="sub" data-brand-name>HTML Present</div>
+    <h2 id="authTitle">Đăng nhập quản trị</h2>
+    <p class="hint" id="authHint"></p>
+    <label for="pw">Mật khẩu</label>
+    <input id="pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()">
+    <div id="pw2wrap" class="hidden" style="margin-top:12px">
+      <label for="pw2">Nhập lại mật khẩu</label>
+      <input id="pw2" type="password" onkeydown="if(event.key==='Enter')doAuth()">
+    </div>
+    <div class="err" id="authErr"></div>
+    <button class="btn block" style="margin-top:10px" onclick="doAuth()" id="authBtn">Đăng nhập</button>
+  </div>
+</div>
+
+<!-- ỨNG DỤNG -->
+<div id="app" class="hidden">
+  <header>
+    <div class="hl">
+      <img src="/_app/assets/logo.svg" alt="HTML Present">
+      <div>
+        <div class="ttl">Quản lý thư viện trình bày</div>
+        <div class="sub"><span data-brand-name>HTML Present</span> · <span id="baseUrlLbl"></span></div>
+      </div>
+    </div>
+    <div class="hsearch">
+      <input id="globalSearch" type="search" placeholder="Tìm deck, slide, link chia sẻ…" autocomplete="off"
+             aria-label="Tìm kiếm toàn cục">
+    </div>
+    <div class="hr">
+      <!-- lane:B -->
+      <button type="button" class="btn ghost sm lt-notify-button" id="ltNotifyButton" title="Thông báo mới" aria-label="Thông báo mới">
+        🔔<span class="lt-notify-badge" id="ltNotifyBadge" hidden>0</span>
+      </button>
+      <a class="btn ghost sm" href="/" target="_blank" rel="noopener">Xem trang chủ ↗</a>
+      <button class="btn ghost sm" onclick="logout()">Đăng xuất</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <!-- Điều hướng. Module ngoài thêm mục bằng LT.registerTab() — không sửa file này. -->
+    <nav class="sidebar" id="sidebar" aria-label="Điều hướng quản lý">
+      <div class="navgroup" data-navgroup="content">Nội dung</div>
+      <button class="active" data-tab="projects" data-group="content" onclick="showTab('projects')">
+        <span class="ico" aria-hidden="true">▤</span>Deck &amp; trang</button>
+      <div class="navgroup" data-navgroup="insight">Số liệu</div>
+      <button data-tab="stats" data-group="insight" onclick="showTab('stats')">
+        <span class="ico" aria-hidden="true">▦</span>Thống kê truy cập</button>
+      <button data-tab="analytics" data-group="insight" onclick="showTab('analytics')">
+        <span class="ico" aria-hidden="true">◴</span>Phân tích hành vi</button>
+      <div class="navgroup" data-navgroup="system">Hệ thống</div>
+      <button data-tab="settings" data-group="system" onclick="showTab('settings')">
+        <span class="ico" aria-hidden="true">⚙</span>Cài đặt</button>
+    </nav>
+
+    <main class="content">
+      <!-- PROJECTS -->
+      <div id="tab-projects">
+        <div class="pagehead">
+          <h2>Thư viện deck</h2>
+          <p>Tìm kiếm, lọc, gắn nhãn, lưu trữ và quản lý hiển thị / link chia sẻ của từng bài trình bày.</p>
+        </div>
+        <details class="card">
+          <summary>Thêm deck từ thư mục máy chủ</summary>
+          <div class="cardhead">
+            <h3 class="h">Thư mục HTML chưa đăng ký</h3>
+            <div class="row"><button class="btn ghost sm" onclick="loadScan()">Quét lại</button></div>
+          </div>
+          <div id="scanList" class="muted">Đang tải…</div>
+        </details>
+        <div id="projList"></div>
+      </div>
+
+      <!-- STATS -->
+      <div id="tab-stats" class="hidden">
+        <div class="pagehead">
+          <h2>Thống kê truy cập</h2>
+          <p>Lượt xem, mức độ đọc hết slide và nhật ký truy cập máy chủ.</p>
+        </div>
+        <div class="card">
+          <div class="cardhead" style="margin:0">
+            <div class="row">
+              <select id="statDays" style="width:auto" onchange="loadStats()">
+                <option value="7">7 ngày</option>
+                <option value="30" selected>30 ngày</option>
+                <option value="90">90 ngày</option>
+              </select>
+              <select id="statProject" style="width:auto" onchange="loadStats()">
+                <option value="">Tất cả dự án</option>
+              </select>
+            </div>
+            <button class="btn ghost sm" onclick="loadStats()">Làm mới</button>
+          </div>
+        </div>
+        <div class="grid" id="statCards"></div>
+
+        <div class="card">
+          <h3 class="h">Mức độ xem bài trình bày</h3>
+          <p class="hint" style="margin:-6px 0 12px">Đo bằng script trong trang: slide khách cuộn tới &amp; thời gian xem thực (chỉ tính khi tab đang mở). “Chủ động” = xem ≥10 giây và qua slide 1.</p>
+          <div class="tablewrap"><table id="engDocs">
+            <thead><tr><th>Bài trình bày</th><th>Phiên</th><th>Khách</th><th>TG xem TB</th><th>Xem lâu nhất</th><th>Slide TB</th><th>Xem hết</th><th>Chủ động</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
+
+        <div class="card">
+          <h3 class="h">Phân tích hành vi</h3>
+          <div id="engInsights"></div>
+        </div>
+
+        <div class="card">
+          <div class="cardhead">
+            <h3 class="h">Từng slide: tỷ lệ cuộn tới &amp; thời gian dừng TB</h3>
+            <select id="engFunnelDoc" style="width:auto;max-width:60%" onchange="renderFunnel()"></select>
+          </div>
+          <div id="engFunnel"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="h">Phiên xem gần đây</h3>
+          <div class="tablewrap" style="max-height:420px"><table id="engSessions">
+            <thead><tr><th>Thời gian</th><th>Khách</th><th>Bài</th><th>Slide đạt</th><th>Thời lượng</th><th>Thiết bị</th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
+
+        <div class="card"><h3 class="h">Lượt truy cập theo ngày</h3><div class="bars" id="statBars"></div></div>
+        <div class="card"><h3 class="h">Trang được xem nhiều</h3><table id="topPages"><tbody></tbody></table></div>
+        <div class="card"><h3 class="h">Nhật ký gần đây</h3>
+          <div class="tablewrap" style="max-height:440px">
+            <table id="recent">
+              <thead><tr><th>Thời gian</th><th>IP</th><th>Trang</th><th>Đường dẫn</th><th>Mã</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div id="tab-analytics" class="hidden">
+        <div class="pagehead">
+          <h2>Phân tích hành vi</h2>
+          <p>Phễu slide, thời gian dừng, thiết bị và nguồn truy cập theo từng khoảng thời gian.</p>
+        </div>
+        <div class="card">
+          <div class="fieldrow analytics-filters">
+            <div><label for="analyticsProject">Dự án</label><select id="analyticsProject"><option value="">Tất cả dự án</option></select></div>
+            <div><label for="analyticsPath">Slide</label><select id="analyticsPath"><option value="">Tất cả slide</option></select></div>
+            <div><label for="analyticsShare">Team / link</label><select id="analyticsShare"><option value="">Tất cả team / link</option></select></div>
+            <div><label for="analyticsFrom">Từ ngày</label><input id="analyticsFrom" type="date"></div>
+            <div><label for="analyticsTo">Đến ngày</label><input id="analyticsTo" type="date"></div>
+            <div class="analytics-actions"><button class="btn ghost sm" id="analyticsRefresh">Làm mới</button><button class="btn sm" id="analyticsExport">Xuất Excel</button></div>
+          </div>
+          <div class="err" id="analyticsError" role="status"></div>
+        </div>
+        <div class="grid analytics-kpis" id="analyticsKpis" aria-live="polite"></div>
+        <div class="analytics-grid">
+          <div class="card"><h3 class="h">Xu hướng phiên theo ngày</h3><div class="chart-wrap"><canvas id="chartDaily" aria-label="Xu hướng phiên theo ngày"></canvas></div></div>
+          <div class="card"><h3 class="h">Khung giờ và thứ trong tuần</h3><div class="heatmap-wrap" id="chartHourDay"></div></div>
+          <div class="card"><h3 class="h">Phễu slide</h3><div class="chart-wrap"><canvas id="chartFunnel" aria-label="Số phiên đạt tới từng slide"></canvas></div></div>
+          <div class="card"><h3 class="h">Thời gian dừng mỗi slide</h3><div class="chart-wrap"><canvas id="chartSlideTime" aria-label="Thời gian dừng trung bình mỗi slide"></canvas></div></div>
+          <div class="card"><h3 class="h">Thiết bị</h3><div class="chart-wrap chart-donut"><canvas id="chartDevice" aria-label="Phiên theo thiết bị"></canvas></div></div>
+          <div class="card"><h3 class="h">Trình duyệt</h3><div class="chart-wrap chart-donut"><canvas id="chartBrowser" aria-label="Phiên theo trình duyệt"></canvas></div></div>
+          <div class="card"><h3 class="h">Nguồn truy cập</h3><div class="chart-wrap"><canvas id="chartSource" aria-label="Phiên theo nguồn truy cập"></canvas></div></div>
+          <div class="card"><h3 class="h">Theo team / link</h3><div class="chart-wrap"><canvas id="chartTeam" aria-label="Phiên theo team hoặc link"></canvas></div></div>
+          <div class="card"><h3 class="h">Top click CTA</h3><div class="chart-wrap"><canvas id="chartCta" aria-label="Các nút CTA được click nhiều nhất"></canvas></div></div>
+        </div>
+        <div class="card">
+          <h3 class="h">Phiên gần đây</h3>
+          <div class="analytics-table-wrap"><table id="analyticsSessions">
+            <thead><tr><th>Thời gian</th><th>Dự án / slide</th><th>Khách</th><th>Team / link</th><th>Slide đạt</th><th>Thời gian xem</th><th>Thiết bị</th></tr></thead>
+            <tbody><tr><td colspan="7" class="muted">Chọn bộ lọc để tải dữ liệu.</td></tr></tbody>
+          </table></div>
+          <p class="hint analytics-note">Múi giờ: <span id="timezoneLabel">Asia/Ho_Chi_Minh</span>. Bảng hiển thị tối đa 100 phiên gần nhất.</p>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="tab-settings" class="hidden">
+        <div class="pagehead">
+          <h2>Cài đặt</h2>
+          <p>Thương hiệu, tên miền, token cho agent và mật khẩu quản trị.</p>
+        </div>
+        <div class="card hidden" id="brandSettingsCard">
+          <h3 class="h">Thương hiệu</h3>
+          <div class="fieldrow">
+            <div><label for="brandNameInput">Tên sản phẩm</label><input id="brandNameInput" maxlength="60"></div>
+            <div><label for="brandLogoInput">Logo URL (HTTPS hoặc /_app/)</label><input id="brandLogoInput" placeholder="Để trống dùng logo mặc định"></div>
+            <div style="max-width:150px"><label for="brandColorInput">Màu chính</label><input id="brandColorInput" type="color" value="#2563eb"></div>
+            <div style="min-width:170px">
+              <div class="radio-row" style="padding-bottom:9px">
+                <label class="inline"><input id="brandFooterInput" type="checkbox"> Hiện chân trang</label>
+              </div>
+            </div>
+            <div style="flex:0 0 auto"><button class="btn" onclick="saveBranding()">Lưu thương hiệu</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="h">Tên miền gốc</h3>
+          <p class="hint" style="margin:0 0 10px">Dùng để tạo link chia sẻ. Hiện tại: <span id="baseUrlCur"></span></p>
+          <div class="fieldrow">
+            <div><input id="baseUrlInput" placeholder="https://example.com"></div>
+            <div style="flex:0 0 auto"><button class="btn" onclick="saveBaseUrl()">Lưu</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="h">API tokens</h3>
+          <p class="hint" style="margin:0 0 10px">
+            Cấp token cho agent (openclaw, CI, script) để upload slide/gọi API không cần đăng nhập.
+            Xem <a href="/_app/SLIDE-SPEC.md" target="_blank">chuẩn format slide</a>.
+            Token chỉ hiện 1 lần — hãy copy ngay.
+          </p>
+          <div class="fieldrow">
+            <div style="flex:1"><input id="tokenLabel" placeholder="Mô tả (vd: openclaw)"></div>
+            <div style="flex:0 0 auto"><button class="btn" onclick="createApiToken()">Tạo token</button></div>
+          </div>
+          <div id="tokenNew" class="hidden" style="margin-top:10px;padding:10px;background:var(--amber-soft);border:1px solid #fbbf7a;border-radius:8px;font-family:var(--mono);font-size:13px;word-break:break-all"></div>
+          <div id="tokenList" style="margin-top:12px"></div>
+        </div>
+        <div class="card">
+          <h3 class="h">Đổi mật khẩu quản trị</h3>
+          <div class="fieldrow">
+            <div><label for="pwCur">Mật khẩu hiện tại</label><input id="pwCur" type="password"></div>
+            <div><label for="pwNew">Mật khẩu mới</label><input id="pwNew" type="password"></div>
+            <div style="flex:0 0 auto"><button class="btn" onclick="changePw()">Đổi mật khẩu</button></div>
+          </div>
+          <div class="err" id="pwErr"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="modal" class="hidden"></div>
+
+<script src="/_app/admin/core.js"></script>
+<script src="/_app/admin/projects.js"></script>
+<!-- library.js (Lane K) được projects.js nạp động khi mở tab, không include ở đây. -->
+<!-- Lane N — dashboard: điểm tích hợp do Lane D sở hữu. dashboard.js tự đăng ký
+     tab bằng LT.registerTab(); nếu file chưa có thì chỉ 404 vô hại (admin-only). -->
+<script src="/_app/admin/dashboard.js"></script>
+<!-- lane:A --><script src="/_app/admin/leads.js"></script>
+<script src="/_app/admin/stats.js"></script>
+<script src="/_app/admin/analytics.js"></script>
+<script src="/_app/admin/upload.js"></script>
+<script src="/_app/admin/notes.js"></script>
+<script src="/_app/admin/heatmap.js"></script>
+<script src="/_app/admin/history.js"></script>
+<script src="/_app/admin/qrcode-generator.js"></script>
+<script src="/_app/admin/qr.js"></script>
+</body>
+</html>

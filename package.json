@@ -1,0 +1,30 @@
+{
+  "name": "html-present",
+  "version": "1.0.0",
+  "description": "Self-hosted server that serves static HTML presentations with a single-admin library.",
+  "license": "Apache-2.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "main": "apps/selfhost/src/server.js",
+  "scripts": {
+    "start": "node apps/selfhost/src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "chart.js": "^4.5.1",
+    "cookie-parser": "^1.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "yauzl": "^3.4.0"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
+  }
+}
