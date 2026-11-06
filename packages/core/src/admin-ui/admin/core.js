@@ -133,7 +133,7 @@ window.deleteApiToken = async function(id){
     const name = branding.productName || 'HTML Present';
     document.title = 'Quản lý · ' + name;
     document.querySelectorAll('[data-brand-name]').forEach(node => { node.textContent = name; });
-    document.querySelectorAll('#auth img, header img').forEach(img => {
+    document.querySelectorAll('#auth img, header img, .lt-topbar img').forEach(img => {
       img.alt = name;
       img.src = branding.logoUrl || '/_app/assets/logo.svg';
     });
@@ -175,6 +175,7 @@ window.deleteApiToken = async function(id){
     const cur = document.getElementById('baseUrlCur'); if (cur) cur.textContent = STATE.baseUrl || '';
     const inp = document.getElementById('baseUrlInput'); if (inp) inp.value = STATE.baseUrl || '';
     setupGlobalSearch();
+    setupMobileNav();
     if (LT.tabs.projects) LT.tabs.projects();
     if (window.loadScan) window.loadScan();
   }
@@ -188,9 +189,89 @@ window.deleteApiToken = async function(id){
       el.classList.toggle('hidden', el.id !== 'tab-' + name);
     });
     LT.state.activeTab = name;
+    closeMobileNav();
     const fn = LT.tabs[name];
     if (typeof fn === 'function') fn();
     if (name === 'settings') window.loadApiTokens && window.loadApiTokens();
+  }
+
+  /* -------------------- Menu mobile (hamburger) -------------------- */
+  // Trên mobile (≤720px, xem design.css), sidebar ẩn đi và mở bằng nút ☰ này.
+  let navToggleBtn = null, navScrim = null, topbar = null;
+  let logoImg = null, bellBtn = null, logoHome = null, bellHome = null;
+
+  // Trên mobile: thanh topbar sticky (☰ · logo · 🔔) luôn bám đầu màn hình; drawer &
+  // scrim neo ngay dưới topbar (chiều cao nhỏ, không đổi) nên không giật khi cuộn.
+  function positionMobileNav() {
+    const anchor = topbar && topbar.isConnected ? topbar : document.querySelector('#app header');
+    const sidebar = document.getElementById('sidebar');
+    if (!anchor || !sidebar) return;
+    const bottom = Math.max(0, Math.round(anchor.getBoundingClientRect().bottom));
+    sidebar.style.top = bottom + 'px';
+    sidebar.style.maxHeight = (window.innerHeight - bottom) + 'px';
+    if (navScrim) navScrim.style.top = bottom + 'px';
+  }
+  function openMobileNav() {
+    document.body.classList.add('nav-open');
+    positionMobileNav();
+    if (navScrim) navScrim.hidden = false;
+    if (navToggleBtn) { navToggleBtn.setAttribute('aria-expanded', 'true'); navToggleBtn.textContent = '✕'; }
+  }
+  function closeMobileNav() {
+    document.body.classList.remove('nav-open');
+    if (navScrim) navScrim.hidden = true;
+    if (navToggleBtn) { navToggleBtn.setAttribute('aria-expanded', 'false'); navToggleBtn.textContent = '☰'; }
+  }
+  // Mobile: chuyển logo + chuông vào topbar sticky. Desktop: trả về header như cũ.
+  function applyMobileChrome(mobile) {
+    const app = document.getElementById('app');
+    if (!app || !topbar) return;
+    if (mobile) {
+      if (topbar.parentNode !== app) app.insertBefore(topbar, app.firstChild);
+      if (logoImg) topbar.appendChild(logoImg);   // thứ tự: ☰ (sẵn) · logo · 🔔
+      if (bellBtn) topbar.appendChild(bellBtn);
+    } else {
+      closeMobileNav();
+      if (logoImg && logoHome) logoHome.insertBefore(logoImg, logoHome.firstChild);
+      if (bellBtn && bellHome) bellHome.insertBefore(bellBtn, bellHome.firstChild);
+      if (topbar.parentNode) topbar.parentNode.removeChild(topbar);
+    }
+  }
+  function setupMobileNav() {
+    if (navToggleBtn) return;
+    const header = document.querySelector('#app header');
+    const sidebar = document.getElementById('sidebar');
+    const app = document.getElementById('app');
+    if (!header || !sidebar || !app) return;
+    const btn = navToggleBtn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'navtoggle';
+    btn.textContent = '☰';
+    btn.setAttribute('aria-label', 'Menu điều hướng');
+    btn.setAttribute('aria-controls', 'sidebar');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (document.body.classList.contains('nav-open')) closeMobileNav(); else openMobileNav();
+    });
+    topbar = document.createElement('div');
+    topbar.className = 'lt-topbar';
+    topbar.appendChild(btn);
+    logoImg = header.querySelector('.hl > img');
+    bellBtn = document.getElementById('ltNotifyButton');
+    logoHome = logoImg && logoImg.parentNode;
+    bellHome = bellBtn && bellBtn.parentNode;
+    navScrim = document.createElement('div');
+    navScrim.className = 'nav-scrim';
+    navScrim.hidden = true;
+    navScrim.addEventListener('click', closeMobileNav);
+    document.body.appendChild(navScrim);
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMobileNav(); });
+    window.addEventListener('resize', () => { if (document.body.classList.contains('nav-open')) positionMobileNav(); });
+    const mq = window.matchMedia('(max-width: 720px)');
+    const onChange = () => applyMobileChrome(mq.matches);
+    mq.addEventListener ? mq.addEventListener('change', onChange) : mq.addListener(onChange);
+    applyMobileChrome(mq.matches);
   }
 
   /** Thêm một mục điều hướng + panel cho module ngoài (Lane N dashboard, Lane K

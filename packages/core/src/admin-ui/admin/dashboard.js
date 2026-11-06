@@ -11,6 +11,7 @@
   let allProjects = [];
   let notifyReady = false;
   let notifyTimer = null;
+  let notifyPanel = null;
   const notifyStorageKey = 'htmlpresent.admin.notifications.v1';
 
   const $ = selector => panel && panel.querySelector(selector);
@@ -45,12 +46,83 @@
     const button = document.getElementById('ltNotifyButton');
     if (!button) return;
     notifyReady = true;
+    // Thay emoji 🔔 (lệch, không đều) bằng icon SVG đơn giản, canh giữa trong ô vuông.
+    const badge = document.getElementById('ltNotifyBadge');
+    button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+    if (badge) button.appendChild(badge);
     const state = readNotifyState();
     setNotifyBadge(state.unread || 0);
-    button.addEventListener('click', () => {
-      const next = { ...readNotifyState(), unread: 0, readAt: new Date().toISOString() };
-      writeNotifyState(next); setNotifyBadge(0);
+    button.addEventListener('click', (event) => { event.stopPropagation(); toggleNotifyPanel(); });
+  }
+
+  /* -------- Dropdown danh sách thông báo (mở khi bấm chuông) -------- */
+  function ensureNotifyPanel() {
+    if (notifyPanel) return notifyPanel;
+    notifyPanel = document.createElement('div');
+    notifyPanel.className = 'lt-notify-panel';
+    notifyPanel.id = 'ltNotifyPanel';
+    notifyPanel.hidden = true;
+    document.body.appendChild(notifyPanel);
+    document.addEventListener('click', (event) => {
+      if (notifyPanel.hidden) return;
+      const button = document.getElementById('ltNotifyButton');
+      if (notifyPanel.contains(event.target) || (button && button.contains(event.target))) return;
+      closeNotifyPanel();
     });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeNotifyPanel(); });
+    window.addEventListener('resize', () => { if (!notifyPanel.hidden) positionNotifyPanel(); });
+    return notifyPanel;
+  }
+  function positionNotifyPanel() {
+    const button = document.getElementById('ltNotifyButton');
+    if (!button || !notifyPanel) return;
+    const rect = button.getBoundingClientRect();
+    const width = notifyPanel.offsetWidth || 340;
+    // Neo mép phải panel vào chuông, nhưng clamp để luôn nằm trong màn hình (mobile: chuông ở giữa).
+    let left = Math.min(rect.right - width, window.innerWidth - width - 12);
+    left = Math.max(12, left);
+    notifyPanel.style.left = Math.round(left) + 'px';
+    notifyPanel.style.right = 'auto';
+    notifyPanel.style.top = Math.round(rect.bottom + 6) + 'px';
+  }
+  function closeNotifyPanel() { if (notifyPanel) notifyPanel.hidden = true; }
+  async function toggleNotifyPanel() {
+    const node = ensureNotifyPanel();
+    if (!node.hidden) { closeNotifyPanel(); return; }
+    node.hidden = false;
+    positionNotifyPanel();
+    node.innerHTML = '<div class="lt-notify-head"><span>Thông báo</span></div><div class="lt-notify-empty">Đang tải…</div>';
+    const next = { ...readNotifyState(), unread: 0, readAt: new Date().toISOString() };
+    writeNotifyState(next); setNotifyBadge(0);
+    await renderNotifyList(node);
+  }
+  async function renderNotifyList(node) {
+    let items = [];
+    try {
+      const [data, leadResult] = await Promise.all([
+        LT.api('GET', '/api/analytics?days=7').catch(() => ({})),
+        LT.api('GET', '/api/leads?days=7').catch(() => ({ leads: [] }))
+      ]);
+      const leads = Array.isArray(leadResult) ? leadResult : (leadResult && leadResult.leads) || [];
+      const recent = (data && data.recent) || [];
+      leads.forEach(r => items.push({
+        t: r.t, icon: '📩',
+        html: `<b>Lead mới</b> · ${esc(r.name || 'Khách')}${r.phone ? ' · ' + esc(r.phone) : (r.email ? ' · ' + esc(r.email) : '')}`
+      }));
+      recent.forEach(r => items.push({
+        t: r.t, icon: '👁',
+        html: `Khách mở <b>${esc(r.slug || r.project || 'deck')}</b>${r.path ? ' / ' + esc(r.path) : ''}`
+      }));
+      items = items.filter(x => x.t).sort((a, b) => String(b.t).localeCompare(String(a.t))).slice(0, 15);
+    } catch (_) { items = []; }
+    if (node.hidden) return;
+    const head = `<div class="lt-notify-head"><span>Thông báo</span>${items.length ? '<button type="button" class="lt-notify-clear" id="ltNotifyGoto">Xem tổng quan</button>' : ''}</div>`;
+    const body = items.length
+      ? items.map(x => `<div class="lt-notify-item"><span class="ic" aria-hidden="true">${x.icon}</span><span class="tx">${x.html}<div class="tm">${esc(dateTime(x.t))}</div></span></div>`).join('')
+      : '<div class="lt-notify-empty">Chưa có hoạt động nào gần đây.</div>';
+    node.innerHTML = head + body;
+    const goto = node.querySelector('#ltNotifyGoto');
+    if (goto) goto.addEventListener('click', () => { closeNotifyPanel(); if (LT.showTab) LT.showTab('dashboard'); });
   }
   function notificationTimestamp(data, leads) {
     const activity = (data && data.recent || []).map(row => Date.parse(row.t || '')).filter(Number.isFinite);
@@ -489,4 +561,10 @@
     const projectsButton = sidebar && sidebar.querySelector('[data-tab="projects"]');
     if (button && projectsButton) sidebar.insertBefore(button, projectsButton);
   }
+
+  // Chuông thông báo phải hoạt động độc lập với tab đang mở (trước đây chỉ bind khi
+  // mở tab Tổng quan → bấm chuông không ra gì). Bind handler + chạy poll badge ngay.
+  bindNotifications();
+  pollNotifications(true).catch(() => {});
+  if (!notifyTimer) notifyTimer = setInterval(() => pollNotifications(false), 15000);
 })();
