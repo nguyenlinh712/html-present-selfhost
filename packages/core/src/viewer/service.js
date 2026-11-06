@@ -73,7 +73,6 @@ function injectRuntime(html, project, ctx, access, route, options = {}) {
   if (project.present !== false) {
     head += `<link rel="stylesheet" href="${assetUrl('present.css')}">`;
     body += `<script src="${assetUrl('present.js')}" defer></script>`;
-    body += `<script src="${assetUrl('preload.js')}" defer></script>`;
   }
   if (isAdmin) {
     // Sửa slide trực tiếp trên trang xem — chỉ admin mới tải (xem docs/internal/PHASE4-FAB-EDIT.md).

@@ -3,12 +3,13 @@
 .lt-fab,.lt-fab-menu,.lt-fab-menu *{box-sizing:border-box}
 .lt-fab{
   position:fixed;left:auto;top:auto;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
-  z-index:1000000;width:52px;height:52px;padding:0;border:1px solid rgba(255,255,255,.28);border-radius:50%;
+  z-index:1000000;width:36px;height:36px;padding:0;border:1px solid rgba(255,255,255,.28);border-radius:50%;
   color:#fff;background:var(--html-present-primary,#2563eb);box-shadow:0 5px 22px rgba(21,24,29,.28);
-  font:700 28px/1 "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:grab;touch-action:none;
+  font:700 21px/1 "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:grab;touch-action:none;overflow:visible;
   transition:background .15s ease,box-shadow .15s ease,transform .15s ease;
 }
 .lt-fab:hover{transform:scale(1.04);box-shadow:0 7px 26px rgba(21,24,29,.34)}
+.lt-fab::after{content:attr(data-tooltip);position:absolute;right:calc(100% + 8px);top:50%;padding:5px 8px;border-radius:6px;background:#15181e;color:#fff;font:600 11px/1.2 "Be Vietnam Pro",-apple-system,sans-serif;white-space:nowrap;opacity:0;pointer-events:none;transform:translateY(-50%) translateX(4px);transition:opacity .15s ease,transform .15s ease}.lt-fab:hover::after,.lt-fab:focus-visible::after{opacity:1;transform:translateY(-50%) translateX(0)}
 .lt-fab:focus-visible,.lt-fab-item:focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
 .lt-fab.is-dragging{cursor:grabbing;transition:none;transform:scale(1.06)}
 .lt-fab[hidden],.lt-fab-menu[hidden]{display:none!important}
@@ -27,6 +28,7 @@ button.lt-fab-item:hover:not(:disabled){background:#eef2f8}
 .lt-fab-item-icon{display:inline-grid;place-items:center;flex:none;width:22px;color:var(--html-present-primary,#2563eb);font-size:18px}
 .lt-fab-item-label{font-size:10.5px;line-height:1.2;white-space:nowrap}
 .lt-fab-item-status{color:#586271;font-weight:700;font-variant-numeric:tabular-nums}
+.lt-fab-pin{min-width:66px!important;color:#586271!important;font-size:10.5px!important;font-weight:600!important}.lt-fab-pin:hover{color:var(--html-present-primary,#2563eb)!important}
 .lt-fab-empty{padding:12px;color:#68717d;font-size:13px}
 @media(prefers-color-scheme:dark){
   .lt-fab-menu{border-color:rgba(255,255,255,.14);background:rgba(31,36,46,.97);color:#f3f4f6}
@@ -42,7 +44,7 @@ html.htmlpresent-audience-page,html.htmlpresent-audience-page body{width:100%;he
 #htmlpresent-audience>*{box-sizing:border-box;max-width:none!important;scroll-snap-align:none!important}
 #htmlpresent-audience .notes,#htmlpresent-audience aside.notes{display:none!important;visibility:hidden!important}
 #htmlpresent-audience.htmlpresent-present-blackout::after,
-html.htmlpresent-present-blackout:not(.htmlpresent-audience-page)::after{content:"";position:fixed;inset:0;z-index:2147483647;background:#000;pointer-events:auto}
+html.htmlpresent-present-blackout:not(.htmlpresent-audience-page)::after{content:"";position:fixed;inset:0;z-index:2147483647;background:#000;pointer-events:none}
 #htmlpresent-presenter-panel{position:fixed;inset:0;z-index:2147482500;display:flex;flex-direction:column;gap:14px;padding:16px 20px 18px;background:#f2f4f7;color:#202632;font:14px/1.45 "Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
 .htmlpresent-audience-blocked{padding:12px 16px;border-radius:10px;background:#fff5e6;border:1px solid #fbbf7a;color:#92400e;font:500 13px/1.5 "Be Vietnam Pro",-apple-system,sans-serif;margin-bottom:12px}
 .htmlpresent-audience-blocked-link{color:var(--html-present-primary,#2563eb);text-decoration:underline;font-weight:700}
@@ -99,9 +101,10 @@ html.lt-idle.lt-immersive,html.lt-idle.lt-immersive *{cursor:none!important}
 /* Trợ giúp phím tắt. */
 .lt-help{position:fixed;inset:0;z-index:2147482700;display:none;place-items:center;padding:20px;background:rgba(17,20,26,.72)}
 .lt-help.is-open{display:grid}
-.lt-help-card{max-width:420px;width:100%;max-height:85vh;overflow:auto;padding:22px 24px;border-radius:14px;background:#fff;color:#202632;box-shadow:0 18px 60px rgba(0,0,0,.4);font:14px/1.5 "Be Vietnam Pro",-apple-system,sans-serif}
+.lt-help-card{max-width:min(760px,calc(100vw - 40px));width:100%;max-height:90vh;overflow:auto;padding:22px 24px;border-radius:14px;background:#fff;color:#202632;box-shadow:0 18px 60px rgba(0,0,0,.4);font:14px/1.45 "Be Vietnam Pro",-apple-system,sans-serif}
 .lt-help-card h3{margin:0 0 14px;font-size:18px;color:#15181d}
 .lt-help-card dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0}
+@media(min-width:801px){.lt-help-card dl{grid-template-columns:170px 1fr 170px 1fr;gap:7px 14px}.lt-help-card dt{font-size:12px}.lt-help-card dd{font-size:13px}}
 .lt-help-card dt{font:700 12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#15181d;white-space:nowrap}
 .lt-help-card dd{margin:0;color:#4a515c}
 .lt-help-close{margin-top:18px;padding:9px 16px;border:0;border-radius:9px;background:var(--html-present-primary,#2563eb);color:#fff;font:600 13px/1.2 "Be Vietnam Pro",-apple-system,sans-serif;cursor:pointer}

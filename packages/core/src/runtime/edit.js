@@ -99,13 +99,16 @@
       <span class="lt-edit-status">Bấm vào text để sửa</span>
       <span class="lt-edit-spacer"></span>
       <button type="button" class="lt-edit-btn" data-edit="code">⟨/⟩ Code</button>
-      <button type="button" class="lt-edit-btn lt-edit-ghost" data-edit="cancel">Huỷ</button>
+      <button type="button" class="lt-edit-btn lt-edit-ghost" data-edit="exit">Thoát</button>
       <button type="button" class="lt-edit-btn lt-edit-primary" data-edit="save" disabled>Lưu</button>`;
     document.body.appendChild(bar);
     bar.addEventListener('click', async event => {
       const b = event.target.closest('[data-edit]'); if (!b) return;
       if (b.dataset.edit === 'save') saveInline();
-      else if (b.dataset.edit === 'cancel') exitEdit(true);
+      else if (b.dataset.edit === 'exit') {
+        if (dirty && !confirm('Bạn còn thay đổi chưa lưu. Thoát sẽ bỏ các thay đổi này?')) return;
+        exitEdit(true);
+      }
       else if (b.dataset.edit === 'code') openCodeEditor();
       else if (b.dataset.edit === 'copy-draft') {
         try { await navigator.clipboard.writeText(draftContent()); toast('Đã copy bản nháp HTML.'); }

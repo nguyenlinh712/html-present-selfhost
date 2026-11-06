@@ -30,8 +30,11 @@
   let channel = null;
   let fabButton = null;
   let fabMenu = null;
+  let fabPinButton = null;
   let fabMenuOpen = false;
   let fabHidden = false;
+  let fabPinned = false;
+  const fabPinnedKey = 'lt-fab-pinned-v1';
   let dragState = null;
   let ignoreFabClick = false;
   const menuItems = [];
@@ -612,7 +615,7 @@
         element.disabled = itemIsDisabled(item);
         element.addEventListener('click', async () => {
           if (element.disabled) return;
-          closeMenu();
+          if (!fabPinned) closeMenu();
           try { await item.onClick(); }
           catch (error) { showToast(error && error.message ? error.message : 'Không thực hiện được thao tác.'); }
         });
@@ -629,6 +632,12 @@
       text.textContent = label;
       element.append(glyph, text);
       fabMenu.appendChild(element);
+    }
+    if (fabPinButton) {
+      fabMenu.appendChild(fabPinButton);
+      fabPinButton.setAttribute('aria-pressed', fabPinned ? 'true' : 'false');
+      fabPinButton.title = fabPinned ? 'Bỏ ghim điều khiển' : 'Ghim điều khiển';
+      fabPinButton.innerHTML = `<span class="lt-fab-item-icon" aria-hidden="true">📌</span><span class="lt-fab-item-label">${fabPinned ? 'Bỏ ghim' : 'Ghim'}</span>`;
     }
   }
 
@@ -786,21 +795,27 @@
     if (!helpEl) {
       helpEl = document.createElement('div');
       helpEl.className = 'lt-help';
-      helpEl.innerHTML = `<div class="lt-help-card" role="dialog" aria-label="Phím tắt">
-        <h3>Phím tắt</h3>
+      helpEl.innerHTML = `<div class="lt-help-card" role="dialog" aria-label="Hướng dẫn điều khiển">
+        <h3>Hướng dẫn điều khiển</h3>
+        <p>Di chuột xuống góc phải để mở thanh điều khiển. Bấm nền slide để chuyển tiếp.</p>
         <dl>
-          <dt>← / → · Space</dt><dd>Lùi / Tiếp (và từng bước)</dd>
-          <dt>↑ / ↓</dt><dd>Chuyển cả slide (hiện hết bước)</dd>
-          <dt>Home / End</dt><dd>Slide đầu / cuối (hiện hết bước)</dd>
-          <dt>Số → Enter</dt><dd>Nhảy tới slide</dd>
-          <dt>O</dt><dd>Tổng quan</dd>
-          <dt>A</dt><dd>Tự chạy</dd>
-          <dt>+ / −</dt><dd>Tốc độ tự chạy</dd>
-          <dt>B</dt><dd>Màn đen</dd>
-          <dt>F</dt><dd>Toàn màn hình</dd>
+          <dt>← / → · Space</dt><dd>Lùi / tiến; hiện từng bước nếu slide có hiệu ứng.</dd>
+          <dt>↑ / ↓</dt><dd>Chuyển nguyên slide và hiện hết bước.</dd>
+          <dt>Home / End</dt><dd>Về slide đầu / cuối.</dd>
+          <dt>Số → Enter</dt><dd>Nhảy thẳng tới slide theo số.</dd>
+          <dt>Nút số slide</dt><dd>Mở tổng quan để chọn nhanh slide.</dd>
+          <dt>Màn đen</dt><dd>Che slide tạm thời; bấm lại hoặc Esc để trở lại.</dd>
+          <dt>Hiện tất cả bước</dt><dd>Bỏ qua hiệu ứng và hiện toàn bộ nội dung slide.</dd>
+          <dt>Tự chạy</dt><dd>Tự chuyển slide theo thời gian đã chọn.</dd>
+          <dt>Tốc độ</dt><dd>Đổi tốc độ tự chạy.</dd>
+          <dt>Toàn màn hình</dt><dd>Bật / tắt toàn màn hình trình duyệt.</dd>
+          <dt>📌 Ghim / Bỏ ghim</dt><dd>Giữ thanh điều khiển luôn mở hoặc cho phép tự thu.</dd>
+          <dt>Sửa slide</dt><dd>Bật sửa trực tiếp nội dung chữ trên slide.</dd>
+          <dt>Trình chiếu</dt><dd>Mở màn hình khán giả và đồng bộ slide.</dd>
+          <dt>Chỉ màn người trình bày</dt><dd>Mở ghi chú, đồng hồ và slide kế tiếp.</dd>
           ${allowedButton ? '<dt>V</dt><dd>Màn người trình bày</dd>' : ''}
-          <dt>? / H</dt><dd>Trợ giúp này</dd>
-          <dt>Esc</dt><dd>Đóng</dd>
+          <dt>? / H</dt><dd>Mở / đóng hướng dẫn này</dd>
+          <dt>Esc</dt><dd>Tắt màn đen; nếu không thì đóng bảng đang mở</dd>
         </dl>
         <button type="button" class="lt-help-close">Đóng</button>
       </div>`;
@@ -828,7 +843,7 @@
   function setupImmersiveInput() {
     if (!immersive || isAudience) return;
     document.addEventListener('click', event => {
-      if (fabMenuOpen || overviewOpen() || helpOpen() || blackout || isEditing()) return;
+      if ((fabMenuOpen && !fabPinned) || overviewOpen() || helpOpen() || blackout || isEditing()) return;
       if (insideControls(event.target)) return;
       if (event.target.closest && event.target.closest('a,button,input,textarea,select,label,summary,[data-no-advance]')) return;
       move(1);
@@ -855,6 +870,7 @@
 
   function setupFab() {
     if (isAudience) return;
+    try { fabPinned = localStorage.getItem(fabPinnedKey) === '1'; } catch (_) {}
     registerMenuItem({ id: 'present-prev', label: 'Slide trước', icon: '◀', order: 10,
       when: () => presentationEnabled, disabled: () => current <= 0, onClick: () => move(-1) });
     registerMenuItem({ id: 'present-count', label: () => `Slide ${current + 1}/${slides.length}`, icon: '•', order: 15,
@@ -867,13 +883,11 @@
       when: () => presentationEnabled && slides.length > 1, onClick: () => setAutoplay() });
     registerMenuItem({ id: 'present-speed', label: () => `Tốc độ ${AUTOPLAY_SPEEDS[autoplaySpeedIdx]}×`, icon: '⏩', order: 36,
       when: () => presentationEnabled && slides.length > 1, onClick: () => cycleSpeed(1) });
-    registerMenuItem({ id: 'present-overview', label: 'Tổng quan', icon: '▦', order: 38,
-      when: () => presentationEnabled && slides.length > 1, onClick: toggleOverview });
     registerMenuItem({ id: 'present-revealmode', label: () => revealAllMode ? 'Hiện tất cả bước ✓' : 'Hiện tất cả bước', icon: '⤢', order: 39,
       when: () => presentationEnabled && deckHasSteps(), onClick: toggleRevealAll });
     registerMenuItem({ id: 'present-fullscreen', label: 'Toàn màn hình', icon: '⛶', order: 40,
       when: () => presentationEnabled, onClick: toggleFullscreen });
-    registerMenuItem({ id: 'present-help', label: 'Phím tắt', icon: '?', order: 60,
+    registerMenuItem({ id: 'present-help', label: 'Hướng dẫn', icon: '?', order: 60,
       when: () => presentationEnabled, onClick: toggleHelp });
     // Chế độ 1 màn hình: panel người trình bày (slide hiện tại + slide kế +
     // đồng hồ + ghi chú) ngay trong tab này, không cần cửa sổ thứ hai.
@@ -883,12 +897,12 @@
     // Chế độ 1 màn hình: chỉ panel người trình bày (không mở cửa sổ khán giả).
     registerMenuItem({ id: 'present-panel', label: () => presenterPanel ? 'Đóng màn trình bày' : 'Chỉ màn người trình bày',
       icon: '▣', order: 45, when: () => allowedButton, onClick: togglePresenterPanel });
-
     fabButton = document.createElement('button');
     fabButton.type = 'button';
     fabButton.className = 'lt-fab';
     fabButton.textContent = '⋮';
-    fabButton.setAttribute('aria-label', 'Mở điều khiển trình chiếu');
+    fabButton.setAttribute('aria-label', 'Thanh điều khiển');
+    fabButton.dataset.tooltip = 'Thanh điều khiển';
     fabButton.setAttribute('aria-controls', 'lt-fab-menu');
     fabButton.setAttribute('aria-expanded', 'false');
     fabMenu = document.createElement('div');
@@ -897,6 +911,17 @@
     fabMenu.setAttribute('role', 'group');
     fabMenu.setAttribute('aria-label', 'Điều khiển trình chiếu');
     fabMenu.hidden = true;
+    fabPinButton = document.createElement('button');
+    fabPinButton.type = 'button';
+    fabPinButton.className = 'lt-fab-item lt-fab-pin';
+    fabPinButton.setAttribute('aria-label', 'Ghim điều khiển');
+    fabPinButton.addEventListener('click', event => {
+      event.stopPropagation();
+      fabPinned = !fabPinned;
+      try { localStorage.setItem(fabPinnedKey, fabPinned ? '1' : '0'); } catch (_) {}
+      if (fabPinned && !fabMenuOpen) openMenu();
+      else updateToolbar();
+    });
     document.body.append(fabButton, fabMenu);
     restoreFabPosition();
 
@@ -942,7 +967,7 @@
     fabButton.addEventListener('pointerup', finishDrag);
     fabButton.addEventListener('pointercancel', finishDrag);
     document.addEventListener('pointerdown', event => {
-      if (fabMenuOpen && !fabButton.contains(event.target) && !fabMenu.contains(event.target)) closeMenu();
+      if (fabMenuOpen && !fabPinned && !fabButton.contains(event.target) && !fabMenu.contains(event.target)) closeMenu();
     });
     window.addEventListener('resize', () => {
       if (!fabButton) return;
@@ -952,6 +977,7 @@
       saveFabPosition();
     });
     document.addEventListener('fullscreenchange', updateToolbar);
+    if (fabPinned) openMenu();
     updateToolbar();
   }
 
@@ -1182,6 +1208,7 @@
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     if (isEditing()) return;
     const key = event.key;
+    if (key === 'Escape' && blackout) { event.preventDefault(); setBlackout(false); return; }
     // Enter/Space trên một nút/link → để chính nó xử lý, không điều hướng slide.
     if ((key === ' ' || key === 'Enter') && event.target.closest &&
         event.target.closest('button,a,[role="button"],summary')) return;

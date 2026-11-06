@@ -204,7 +204,7 @@
           <h3 class="h">Thương hiệu</h3>
           <div class="fieldrow">
             <div><label for="brandNameInput">Tên sản phẩm</label><input id="brandNameInput" maxlength="60"></div>
-            <div><label for="brandLogoInput">Logo URL (HTTPS hoặc /_app/)</label><input id="brandLogoInput" placeholder="Để trống dùng logo mặc định"></div>
+            <div><label>Logo</label><div class="brand-logo-editor"><button type="button" id="brandLogoPreview" class="brand-logo-preview" onclick="openLogoMenu()" aria-label="Xem và quản lý logo"><img src="/_app/assets/logo.svg" alt="Logo hiện tại"></button><input id="brandLogoInput" type="hidden"><input id="brandLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" hidden></div><div id="brandLogoActions" class="brand-logo-actions hidden"><button type="button" class="btn sm" onclick="chooseBrandLogoFile()">Tải ảnh</button><button type="button" class="btn ghost sm" onclick="pasteBrandLogoLink()">Dán link</button><button type="button" class="btn ghost sm" onclick="removeBrandLogo()">Xoá logo</button></div></div>
             <div style="max-width:150px"><label for="brandColorInput">Màu chính</label><input id="brandColorInput" type="color" value="#2563eb"></div>
             <div style="min-width:170px">
               <div class="radio-row" style="padding-bottom:9px">
@@ -237,6 +237,12 @@
           <div id="tokenList" style="margin-top:12px"></div>
         </div>
         <div class="card">
+          <h3 class="h">Quy ước slide</h3>
+          <p class="hint" style="margin:0 0 10px">File `SLIDE-SPEC.md` quy định format để AI tạo slide đúng với hệ thống.</p>
+          <div class="fieldrow"><a class="btn" href="/_admin/api/guide" target="_blank" rel="noopener">Tải SLIDE-SPEC.md</a><button class="btn ghost" type="button" onclick="chooseSlideGuideFile()">Thay file</button><input id="slideGuideFile" type="file" accept=".md,text/markdown" hidden></div>
+          <p class="hint" id="slideGuideStatus" style="margin:8px 0 0">Chỉ admin mới thay thế được file quy ước.</p>
+        </div>
+        <div class="card">
           <h3 class="h">Đổi mật khẩu quản trị</h3>
           <div class="fieldrow">
             <div><label for="pwCur">Mật khẩu hiện tại</label><input id="pwCur" type="password"></div>
@@ -248,6 +254,7 @@
       </div>
     </main>
   </div>
+  <footer class="admin-footer">© <span data-year></span> <span data-brand-name>HTML Present</span></footer>
 </div>
 
 <div class="toast" id="toast"></div>

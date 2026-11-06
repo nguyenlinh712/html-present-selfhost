@@ -104,7 +104,7 @@ header .hr { display: flex; gap: var(--sp-2); align-items: center; flex: none; m
   color: var(--muted); font-size: 30px; pointer-events: none;
 }
 
-.shell { display: flex; align-items: flex-start; min-height: calc(100vh - var(--header-h) - 3px); }
+.shell { display: flex; align-items: flex-start; min-height: 0; }
 
 .sidebar {
   flex: none; width: var(--sidebar-w); padding: var(--sp-4) var(--sp-3);
@@ -124,7 +124,7 @@ header .hr { display: flex; gap: var(--sp-2); align-items: center; flex: none; m
 .sidebar button.active { background: var(--red-soft); color: var(--red); font-weight: 600; }
 .sidebar button .ico { font-size: 15px; width: 18px; text-align: center; flex: none; }
 
-.content { flex: 1; min-width: 0; padding: var(--sp-5) var(--sp-5) 90px; }
+.content { flex: 1; min-width: 0; padding: var(--sp-5) var(--sp-5) 24px; }
 .content > .pagehead { margin-bottom: var(--sp-4); }
 .pagehead h2 { margin: 0; font-size: 20px; font-weight: 700; }
 .pagehead p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
@@ -533,3 +533,5 @@ td.mono { font-family: var(--mono); font-size: 12px; }
 .lt-lead-table td:last-child{max-width:320px;white-space:normal;color:var(--muted)}
 .lt-lead-table a{color:var(--brand,#2563eb);text-decoration:none}
 .lt-lead-table a:hover{text-decoration:underline}
+:root{--admin-footer-space:24px}
+.brand-logo-editor{display:flex;align-items:center;gap:8px}.brand-logo-preview{width:112px;height:64px;padding:7px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.brand-logo-preview img{display:block;width:100%;height:100%;object-fit:contain}.brand-logo-actions{display:flex;gap:6px;margin-top:7px}.admin-footer{padding:8px 0 12px;color:var(--muted);font-size:12px;text-align:center}.admin-footer a{color:inherit;font-weight:700}

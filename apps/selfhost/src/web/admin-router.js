@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const core = require('@html-present/core');
 const crypto = require('node:crypto');
+const Busboy = require('busboy');
 const { normalizeBranding } = require('../config/branding');
 
 const IMAGE_TYPES = new Map([
@@ -20,6 +21,7 @@ function createAdminRouter({ fileRepo, auth, coreAdmin, coreRoot, dataDir, clien
   const uploadRoot = path.join(dataDir, '.uploads');
   const trashRoot = path.join(dataDir, '.trash');
   const chartFile = path.join(coreRoot, 'src', 'admin-ui', 'vendor', 'chart.umd.min.js');
+  const guideFile = path.join(dataDir, 'agent-slide-guide.md');
   const attempts = new Map();
   const attemptsCleanup = setInterval(() => {
     const now = Date.now();
@@ -31,6 +33,29 @@ function createAdminRouter({ fileRepo, auth, coreAdmin, coreRoot, dataDir, clien
   const ctx = req => auth.context(req);
   const config = () => repo.config.get({ tenantId: 'default' });
   const baseUrl = req => String(config().baseUrl || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+
+  function receiveSingleFile(req, { maxBytes = 2 * 1024 * 1024 } = {}) {
+    return new Promise((resolve, reject) => {
+      let done = false;
+      let file = null;
+      const finish = (error, value) => { if (done) return; done = true; error ? reject(error) : resolve(value); };
+      let bb;
+      try { bb = Busboy({ headers: req.headers, limits: { files: 1, fileSize: maxBytes, fields: 4 } }); }
+      catch (error) { finish(error); return; }
+      bb.on('file', (_name, stream, info) => {
+        if (file) { stream.resume(); return; }
+        const chunks = [];
+        let size = 0;
+        let limited = false;
+        stream.on('data', chunk => { size += chunk.length; chunks.push(chunk); });
+        stream.on('limit', () => { limited = true; });
+        stream.on('end', () => { file = { filename: info.filename || '', mimeType: info.mimeType || '', buffer: Buffer.concat(chunks), size, limited }; });
+      });
+      bb.on('error', error => finish(error));
+      bb.on('finish', () => file ? finish(null, file) : finish(Object.assign(new Error('Chưa chọn file.'), { status: 400 })));
+      req.pipe(bb);
+    });
+  }
 
   function safeProject(project, req, shareStats = {}) {
     if (!project) return null;
@@ -162,6 +187,48 @@ function createAdminRouter({ fileRepo, auth, coreAdmin, coreRoot, dataDir, clien
       repo.config.update(ctx(req), { branding });
       res.json({ ok: true, branding: config().branding });
     } catch (error) { res.status(400).json({ error: error.message || 'Cấu hình thương hiệu không hợp lệ.' }); }
+  }));
+
+  router.post('/api/branding/logo', adminOnly, route(async (req, res) => {
+    const upload = await receiveSingleFile(req, { maxBytes: 2 * 1024 * 1024 });
+    if (upload.limited) return res.status(413).json({ error: 'Logo quá lớn (tối đa 2MB).' });
+    const ext = IMAGE_TYPES.get(upload.mimeType);
+    if (!ext) return res.status(400).json({ error: 'Logo phải là PNG, JPEG, WebP, GIF hoặc AVIF.' });
+    fs.mkdirSync(coversDir, { recursive: true });
+    const filename = `branding-logo.${ext}`;
+    const target = path.join(coversDir, filename);
+    const temporary = `${target}.tmp-${process.pid}-${Date.now()}`;
+    fs.writeFileSync(temporary, upload.buffer, { mode: 0o600 });
+    fs.renameSync(temporary, target);
+    for (const oldExt of IMAGE_TYPES.values()) if (oldExt !== ext) { try { fs.unlinkSync(path.join(coversDir, `branding-logo.${oldExt}`)); } catch (_) {} }
+    const branding = normalizeBranding({ ...config().branding, logoUrl: `/_app/covers/${filename}` });
+    repo.config.update(ctx(req), { branding });
+    res.json({ ok: true, branding: config().branding });
+  }));
+
+  router.delete('/api/branding/logo', adminOnly, route(async (req, res) => {
+    for (const ext of IMAGE_TYPES.values()) { try { fs.unlinkSync(path.join(coversDir, `branding-logo.${ext}`)); } catch (_) {} }
+    const branding = normalizeBranding({ ...config().branding, logoUrl: '' });
+    repo.config.update(ctx(req), { branding });
+    res.json({ ok: true, branding: config().branding });
+  }));
+
+  router.get('/api/guide', adminOnly, route(async (_req, res) => {
+    const bundled = path.resolve(coreRoot, '..', '..', 'docs', 'SLIDE-SPEC.md');
+    const source = fs.existsSync(guideFile) ? guideFile : bundled;
+    if (!fs.existsSync(source)) return res.status(404).json({ error: 'Chưa có file quy ước.' });
+    res.type('text/markdown').set('Content-Disposition', 'attachment; filename="SLIDE-SPEC.md"').send(fs.readFileSync(source));
+  }));
+
+  router.post('/api/guide', adminOnly, route(async (req, res) => {
+    const upload = await receiveSingleFile(req, { maxBytes: 2 * 1024 * 1024 });
+    if (upload.limited) return res.status(413).json({ error: 'File hướng dẫn quá lớn (tối đa 2MB).' });
+    if (!/\.md$/i.test(upload.filename || '')) return res.status(400).json({ error: 'File hướng dẫn phải có đuôi .md.' });
+    fs.mkdirSync(path.dirname(guideFile), { recursive: true });
+    const temporary = `${guideFile}.tmp-${process.pid}-${Date.now()}`;
+    fs.writeFileSync(temporary, upload.buffer, { mode: 0o600 });
+    fs.renameSync(temporary, guideFile);
+    res.json({ ok: true, size: upload.buffer.length, name: upload.filename });
   }));
 
   router.get('/api/projects', adminOnly, route(async (req, res) => {

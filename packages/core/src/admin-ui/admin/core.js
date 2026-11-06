@@ -55,7 +55,10 @@ window.deleteApiToken = async function(id){
   async function api(method, url, body) {
     const opt = { method, headers: {} };
     if (!['GET', 'HEAD', 'OPTIONS'].includes(String(method).toUpperCase()) && csrfToken) opt.headers['X-CSRF-Token'] = csrfToken;
-    if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    if (body) {
+      if (typeof FormData !== 'undefined' && body instanceof FormData) opt.body = body;
+      else { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    }
     const r = await fetch('/_admin' + url, opt);
     let data = null; try { data = await r.json(); } catch (_) {}
     if (!r.ok) throw new Error((data && data.error) || ('Lỗi ' + r.status));
@@ -116,6 +119,7 @@ window.deleteApiToken = async function(id){
 
   /* --------------- Đăng nhập / thiết lập mật khẩu ------------------ */
   async function boot() {
+    document.querySelectorAll('[data-year]').forEach(node => { node.textContent = String(new Date().getFullYear()); });
     const me = await api('GET', '/api/me');
     csrfToken = me.csrfToken || '';
     STATE.needsSetup = me.needsSetup;
@@ -143,6 +147,8 @@ window.deleteApiToken = async function(id){
     document.documentElement.style.setProperty('--red-soft', `color-mix(in srgb, ${color} 10%, white)`);
     const fields = { brandNameInput: name, brandLogoInput: branding.logoUrl || '', brandColorInput: color, brandFooterInput: branding.showFooter !== false };
     for (const [id, value] of Object.entries(fields)) { const field = document.getElementById(id); if (field) field.type === 'checkbox' ? field.checked = value : field.value = value; }
+    const preview = document.querySelector('#brandLogoPreview img');
+    if (preview) { preview.src = branding.logoUrl || '/_app/assets/logo.svg'; preview.alt = name; }
   }
   function showAuth(setup) {
     document.getElementById('app').classList.add('hidden');
@@ -367,6 +373,47 @@ window.deleteApiToken = async function(id){
       toast('Đã lưu thương hiệu');
     } catch (e) { toast(e.message); }
   }
+  window.openLogoMenu = function () {
+    document.getElementById('brandLogoActions')?.classList.toggle('hidden');
+  };
+  window.chooseBrandLogoFile = function () { document.getElementById('brandLogoFile')?.click(); };
+  window.pasteBrandLogoLink = async function () {
+    const link = prompt('Dán URL logo HTTPS hoặc đường dẫn /_app/:', STATE.branding?.logoUrl || '');
+    if (link == null) return;
+    document.getElementById('brandLogoInput').value = link.trim();
+    await saveBranding();
+  };
+  async function uploadBrandLogo(file) {
+    if (!file) return;
+    const body = new FormData(); body.append('file', file);
+    const result = await api('POST', '/api/branding/logo', body);
+    STATE.branding = result.branding; applyBranding(STATE.branding); toast('Đã tải logo mới');
+  }
+  async function removeBrandLogo() {
+    if (!confirm('Xoá logo hiện tại và dùng logo mặc định?')) return;
+    const result = await api('DELETE', '/api/branding/logo');
+    STATE.branding = result.branding; applyBranding(STATE.branding); toast('Đã xoá logo');
+  }
+  window.chooseSlideGuideFile = function () { document.getElementById('slideGuideFile')?.click(); };
+  window.uploadSlideGuide = async function () {
+    const input = document.getElementById('slideGuideFile'); const file = input && input.files && input.files[0];
+    const status = document.getElementById('slideGuideStatus');
+    if (!file) { toast('Hãy chọn file .md'); return; }
+    const body = new FormData(); body.append('file', file);
+    try {
+      const result = await api('POST', '/api/guide', body);
+      status.textContent = `Đã lưu ${result.name} · ${result.size} byte.`; input.value = ''; toast('Đã tải file hướng dẫn');
+    } catch (error) { status.textContent = error.message; toast(error.message); }
+  };
+  document.getElementById('brandLogoFile')?.addEventListener('change', event => uploadBrandLogo(event.target.files[0]).catch(error => toast(error.message)));
+  document.getElementById('slideGuideFile')?.addEventListener('change', event => {
+    const file = event.target.files && event.target.files[0]; if (!file) return;
+    const body = new FormData(); body.append('file', file);
+    api('POST', '/api/guide', body).then(result => {
+      document.getElementById('slideGuideStatus').textContent = `Đã thay ${result.name} · ${result.size} byte.`;
+      event.target.value = ''; toast('Đã thay file quy ước');
+    }).catch(error => toast(error.message));
+  });
   async function changePw() {
     const err = document.getElementById('pwErr'); err.textContent = '';
     try {
